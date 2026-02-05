@@ -60,7 +60,7 @@ public class TestGenerateAccount {
     public static String dateOfBirth() {
         LocalDate dob = LocalDate.now()
                 .minusYears(faker.number().numberBetween(18, 45));
-        return dob.toString(); // yyyy-MM-dd
+        return dob.toString();
     }
 
     public static String gender() {
