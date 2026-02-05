@@ -2,6 +2,7 @@ package tests.Authen;
 
 import api.APIClientFactory;
 import api.ConfigLoad;
+import base.BaseTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.APIRequestContext;
@@ -17,7 +18,7 @@ import org.testng.annotations.Test;
 import service.Authen.RegisterService;
 import utils.JsonUtils;
 
-public class RegisterTest {
+public class RegisterTest extends BaseTest {
     ConfigLoad config = ConfigLoad.getInstance();
     private APIRequestContext context;
     private RegisterService authen;
@@ -26,6 +27,7 @@ public class RegisterTest {
     @BeforeClass
     public void setup() {
         context = APIClientFactory.createContext();
+        authen = new RegisterService(context);
     }
 
     @AfterClass
@@ -43,8 +45,7 @@ public class RegisterTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        RegisterResponse registerResponse = JsonUtils.fromResponse(response, RegisterResponse.class);
-        Assert.assertEquals(registerResponse.getMessage(), "Đăng ký tài khoản thành công. Vui lòng kiểm tra email để xác thực.");
+        verifySuccessMessage(response, "Đăng ký tài khoản thành công. Vui lòng kiểm tra email để xác thực.");
     }
 
     @Test
@@ -56,33 +57,21 @@ public class RegisterTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email không đúng định dạng.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email không đúng định dạng.");
     }
 
     @Test
     public void tc_RegisterFailWithEmailIvlDomain() {
         RegisterRequest data = new RegisterRequest(TestGenerateAccount.emailInvDomain(), TestGenerateAccount.password(), TestGenerateAccount.fullName());
 
+        System.out.println(data);
+
         APIResponse response = authen.register(data);
         Assert.assertEquals(response.status(), 400);
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email không đúng định dạng.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email không đúng định dạng.");
     }
 
     @Test
@@ -94,14 +83,7 @@ public class RegisterTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Mật khẩu phải có ít nhất 8 ký tự.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Mật khẩu phải có ít nhất 8 ký tự.");
     }
 
     @Test
@@ -113,14 +95,7 @@ public class RegisterTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Mật khẩu phải chứa ít nhất 1 chữ hoa và 1 số.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Mật khẩu phải chứa ít nhất 1 chữ hoa và 1 số.");
     }
 
     @Test
@@ -132,14 +107,7 @@ public class RegisterTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email là bắt buộc.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email là bắt buộc.");
     }
 
     @Test
@@ -151,13 +119,6 @@ public class RegisterTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Mật khẩu là bắt buộc.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Mật khẩu là bắt buộc.");
     }
 }

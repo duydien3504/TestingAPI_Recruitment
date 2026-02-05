@@ -21,14 +21,16 @@ import utils.JsonUtils;
 
 public class UpdateProfile extends BaseTest {
     ConfigLoad config = ConfigLoad.getInstance();
-    APIRequestContext context;
-    ProfileService pfs;
+    private APIRequestContext context;
+    private ProfileService pfs;
     ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public void setup() {
         String token = loginAndGetToken();
         APIClientFactory.initContextwithToken(token);
+        context = APIClientFactory.getContext();
+        pfs = new ProfileService(context);
     }
 
     @AfterClass
@@ -52,8 +54,7 @@ public class UpdateProfile extends BaseTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        UpdateProfileResponse updateProfileResponse = JsonUtils.fromResponse(response, UpdateProfileResponse.class);
-        Assert.assertEquals(updateProfileResponse.getMessage(), "Cập nhật thành công.");
+        verifySuccessMessage(response, "Cập nhật thành công.");
     }
 
     @Test
@@ -70,14 +71,7 @@ public class UpdateProfile extends BaseTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Số điện thoại không đúng định dạng Việt Nam.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Số điện thoại không đúng định dạng Việt Nam.");
     }
 
     @Test
@@ -94,14 +88,7 @@ public class UpdateProfile extends BaseTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Họ tên là bắt buộc.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Họ tên là bắt buộc.");
     }
 
     @Test
@@ -117,13 +104,6 @@ public class UpdateProfile extends BaseTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Họ tên không được vượt quá 100 ký tự.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Họ tên không được vượt quá 100 ký tự.");
     }
 }
