@@ -14,9 +14,12 @@ public class APIClientFactory {
 
     public static APIRequestContext createContext() {
         ConfigLoad config = ConfigLoad.getInstance();
-        return playwright.get().request().newContext(new APIRequest.NewContextOptions()
+        APIRequestContext context = playwright.get().request().newContext(new APIRequest.NewContextOptions()
                 .setBaseURL(config.getBaseUrl())
                 .setIgnoreHTTPSErrors(true));
+        
+        requestContext.set(context);
+        return context;
     }
 
     public static void initContextwithToken(String token) {

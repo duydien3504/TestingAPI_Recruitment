@@ -9,14 +9,19 @@ import com.microsoft.playwright.options.RequestOptions;
 import models.Authen.RegisterRequest;
 
 public class RegisterService {
-    public static APIResponse register(RegisterRequest data) {
+    private APIRequestContext context;
+
+    public RegisterService(APIRequestContext context) {
+        this.context = context;
+    }
+
+    public APIResponse register(RegisterRequest data) {
         ConfigLoad config = ConfigLoad.getInstance();
-        APIRequestContext context = APIClientFactory.createContext();
 
         return context.post(config.getEPRegister(), RequestOptions.create().setData(data));
     }
 
-    public static APIResponse register(String email, String password, String full_name) {
+    public APIResponse register(String email, String password, String full_name) {
         return register(new RegisterRequest(email, password, full_name));
     }
 }

@@ -2,6 +2,7 @@ package tests.Authen;
 
 import api.APIClientFactory;
 import api.ConfigLoad;
+import base.BaseTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.APIRequestContext;
@@ -17,7 +18,7 @@ import org.testng.annotations.Test;
 import service.Authen.ForgotPWService;
 import utils.JsonUtils;
 
-public class ForgotPWTest {
+public class ForgotPWTest extends BaseTest {
     private APIRequestContext requestContext;
     ConfigLoad config = ConfigLoad.getInstance();
     private ForgotPWService authen;
@@ -26,6 +27,7 @@ public class ForgotPWTest {
     @BeforeClass
     public void setup() {
         requestContext = APIClientFactory.createContext();
+        authen = new ForgotPWService(requestContext);
     }
 
     @AfterClass
@@ -45,7 +47,7 @@ public class ForgotPWTest {
         System.out.println(response.status() + "\n" + response.text());
 
         ForgotPWResponse forgotPWResponse = JsonUtils.fromResponse(response, ForgotPWResponse.class);
-        Assert.assertEquals(forgotPWResponse.getMessage(), "Mã OTP đã được gửi đến email của bạn.");
+        verifySuccessMessage(response, "Mã OTP đã được gửi đến email của bạn.");
     }
 
     @Test
@@ -56,13 +58,8 @@ public class ForgotPWTest {
         Assert.assertEquals(response.status(), 400);
 
         System.out.println(response.status() + "\n" + response.text());
-        try {
-            JsonNode json = mapper.readTree(response.text());
 
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email là bắt buộc.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email là bắt buộc.");
     }
 
     @Test
@@ -73,12 +70,7 @@ public class ForgotPWTest {
         Assert.assertEquals(response.status(), 400);
 
         System.out.println(response.status() + "\n" + response.text());
-        try {
-            JsonNode json = mapper.readTree(response.text());
 
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email không đúng định dạng.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email không đúng định dạng.");
     }
 }

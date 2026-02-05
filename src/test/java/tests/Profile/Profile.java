@@ -18,6 +18,8 @@ public class Profile extends BaseTest{
     public void setup() {
         String token = loginAndGetToken();
         APIClientFactory.initContextwithToken(token);
+        context = APIClientFactory.getContext();
+        prf = new ProfileService(context);
     }
 
     @AfterClass
@@ -32,5 +34,6 @@ public class Profile extends BaseTest{
         APIResponse response = prf.getProfile();
         Assert.assertEquals(response.status(), 200);
         System.out.println(response.status() + "\n" + response.text());
+        verifySuccessMessage(response, "Lấy thông tin thành công.");
     }
 }

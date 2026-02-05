@@ -2,6 +2,7 @@ package tests.Authen;
 
 import api.APIClientFactory;
 import api.ConfigLoad;
+import base.BaseTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.APIRequestContext;
@@ -16,7 +17,7 @@ import org.testng.annotations.Test;
 import service.Authen.LoginService;
 import utils.JsonUtils;
 
-public class LoginTest {
+public class LoginTest extends BaseTest {
     ConfigLoad config = ConfigLoad.getInstance();
     private APIRequestContext requestContext;
     private LoginService authen;
@@ -25,6 +26,7 @@ public class LoginTest {
     @BeforeClass
     public void setup() {
         requestContext = APIClientFactory.createContext();
+        authen = new LoginService(requestContext);
     }
 
     @AfterClass
@@ -43,8 +45,7 @@ public class LoginTest {
 
         System.out.println(response.status() + "\n" + response.text());
 
-        LoginResponse loginResponse = JsonUtils.fromResponse(response, LoginResponse.class);
-        Assert.assertEquals(loginResponse.getMessage(), "Đăng nhập thành công.");
+        verifySuccessMessage(response, "Đăng nhập thành công.");
     }
 
     @Test
@@ -56,14 +57,7 @@ public class LoginTest {
 
         Assert.assertEquals(response.status(), 400);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email không đúng định dạng.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email không đúng định dạng.");
     }
 
     @Test
@@ -75,14 +69,7 @@ public class LoginTest {
 
         Assert.assertEquals(response.status(), 401);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email hoặc mật khẩu không chính xác.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email hoặc mật khẩu không chính xác.");
     }
 
     @Test
@@ -94,14 +81,7 @@ public class LoginTest {
 
         Assert.assertEquals(response.status(), 401);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email hoặc mật khẩu không chính xác.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email hoặc mật khẩu không chính xác.");
     }
 
     @Test
@@ -113,14 +93,7 @@ public class LoginTest {
 
         Assert.assertEquals(response.status(), 400);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Email là bắt buộc.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Email là bắt buộc.");
     }
 
     @Test
@@ -132,13 +105,6 @@ public class LoginTest {
 
         Assert.assertEquals(response.status(), 400);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(response.text());
-
-            Assert.assertEquals(json.get("error").get("message").asText(), "Mật khẩu là bắt buộc.");
-        } catch (Exception e) {
-            Assert.fail("Không parse được JSON response", e);
-        }
+        verifyErrorMessage(response, "Mật khẩu là bắt buộc.");
     }
 }

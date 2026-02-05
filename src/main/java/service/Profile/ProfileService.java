@@ -8,17 +8,18 @@ import com.microsoft.playwright.options.RequestOptions;
 import models.Profile.UpdateProfileRequest;
 
 public class ProfileService {
-    public static APIResponse getProfile() {
-        ConfigLoad config = ConfigLoad.getInstance();
-        APIRequestContext context = APIClientFactory.getContext();
+    private APIRequestContext context;
+    ConfigLoad config = ConfigLoad.getInstance();
 
+    public ProfileService(APIRequestContext context) {
+        this.context = context;
+    }
+
+    public APIResponse getProfile() {
         return context.get(config.getEPProfile());
     }
 
-    public static APIResponse updateProfile(UpdateProfileRequest data) {
-        ConfigLoad config = ConfigLoad.getInstance();
-        APIRequestContext context = APIClientFactory.getContext();
-
+    public APIResponse updateProfile(UpdateProfileRequest data) {
         return  context.put(config.getEPProfile(), RequestOptions
                 .create()
                 .setData(data));
