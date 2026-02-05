@@ -1,51 +1,100 @@
-# Code Review Report
+# Báo cáo Code Review Chi Tiết
 
-## 1. Tổng quan công nghệ
-*   **Ngôn ngữ:** Java 21 (Hiện đại).
-*   **Framework:** Playwright (cho thao tác API/UI), TestNG (Test runner).
-*   **Thư viện hỗ trợ:** Lombok (Model), Jackson (JSON), AssertJ (Assert), Faker (Data).
-*   **Kiến trúc:** Service Object Model.
+## 1. Tổng quan Dự án
+*   **Ngôn ngữ:** Java 21.
+*   **Framework:** Playwright (API Testing), TestNG.
+*   **Thư viện:** Lombok, Jackson, AssertJ, JavaFaker.
+*   **Kiến trúc:** Service Object Model (SOM).
 
-## 2. Ưu điểm
-*   **Cấu trúc dự án rõ ràng:** Phân chia tốt giữa các lớp `api` (core), `service` (business logic), `models` (POJO), và `tests`. Điều này giúp code dễ bảo trì và mở rộng.
-*   **Sử dụng ThreadLocal:** Class `APIClientFactory` sử dụng `ThreadLocal` cho `Playwright` và `APIRequestContext`. Đây là thiết kế đúng đắn để hỗ trợ chạy test song song (parallel execution) trong tương lai.
-*   **Mô hình POJO/Lombok:** Các request/response body được map vào các class Java (trong `models`) có sử dụng Lombok, giúp code gọn gàng, type-safe và dễ đọc hơn so với làm việc trực tiếp với JSON string.
-*   **Configuration:** Class `ConfigLoad` hỗ trợ đọc từ file properties và cho phép ghi đè bằng System Property (rất tốt khi tích hợp CI/CD để thay đổi môi trường test linh hoạt).
+## 2. Điểm Mạnh (Pros)
+*   **Cấu trúc thư mục:** Phân chia rõ ràng (`api`, `models`, `service`, `tests`), tuân thủ mô hình SOM giúp code dễ đọc.
+*   **Thread Safety:** Sử dụng `ThreadLocal` trong `APIClientFactory` cho `Playwright` instance, là tiền đề tốt cho việc chạy test song song (parallel execution).
+*   **Mô hình hóa dữ liệu (Data Modeling):** Sử dụng POJO kết hợp Lombok cho Request/Response body giúp code gọn gàng, tránh lỗi cú pháp JSON thủ công.
+*   **Cấu hình linh hoạt:** `ConfigLoad` hỗ trợ đọc properties và ghi đè qua System Properties (tốt cho CI/CD).
 
-## 3. Nhược điểm & Các vấn đề cần khắc phục (Quan trọng)
+## 3. Các Vấn đề Nghiêm trọng & Cần khắc phục (Critical Issues)
 
-### A. Quản lý Playwright Context (Nghiêm trọng - Critical)
-Đây là vấn đề lớn nhất của project hiện tại:
-*   **Resource Leak (Rò rỉ tài nguyên):** Trong `LoginService.java`, hàm `login` tự gọi `APIClientFactory.createContext()`. Context mới này được tạo ra mỗi lần gọi hàm nhưng **không bao giờ được đóng (dispose)**. Điều này sẽ dẫn đến rò rỉ bộ nhớ và process của browser engine.
-*   **Context không đồng bộ:**
-    *   Trong `LoginTest` (và các test khác), bạn khởi tạo một context ở `@BeforeClass` (`requestContext = APIClientFactory.createContext()`).
-    *   Tuy nhiên, context này **không được sử dụng** vì `LoginService` lại tự tạo context riêng của nó.
-    *   Hậu quả: Test setup một đằng, chạy một nẻo. Các cấu hình global (như header, token) nếu set ở `@BeforeClass` sẽ không có tác dụng trong Service.
+### A. Quản lý Resource & Context (Rất Quan Trọng)
+*   **Rò rỉ tài nguyên (Resource Leak):**
+    *   Trong `LoginService` và `RegisterService`, phương thức `login/register` gọi `APIClientFactory.createContext()`.
+    *   Hàm `createContext()` tạo một **context mới** mỗi lần gọi (`newContext()`) nhưng **không lưu lại** và **không đóng** (dispose) sau khi request xong.
+    *   **Hậu quả:** Mỗi request tạo ra một process browser context treo lơ lửng, gây tràn bộ nhớ nhanh chóng khi số lượng test tăng lên.
+*   **Sự không nhất quán trong `APIClientFactory`:**
+    *   Hàm `createContext()`: Trả về instance mới, KHÔNG lưu vào `ThreadLocal`.
+    *   Hàm `initContextwithToken()`: Tạo instance mới VÀ lưu vào `ThreadLocal`.
+    *   **Hậu quả:** Gây nhầm lẫn cho người sử dụng thư viện API này.
 
-### B. Thiếu hụt tài nguyên & Cấu hình
-*   **Thiếu file Config:** Project tham chiếu đến `config.properties` nhưng không thấy thư mục `src/main/resources` hay file này trong repo. Code sẽ ném `RuntimeException` ngay khi chạy.
-*   **Dead Code:** Biến `private LoginService authen;` trong các class Test được khai báo nhưng để null, trong khi các phương thức của Service lại là `static`. Điều này gây hiểu nhầm về cách sử dụng (Instance vs Static).
+### B. Logic Test & "Ảo giác Setup" (Test Logic Flaws)
+*   **Setup vô nghĩa:**
+    *   Trong `LoginTest` (và các test khác), `@BeforeClass` gọi `requestContext = APIClientFactory.createContext()`.
+    *   Tuy nhiên, `LoginService` lại tự tạo context riêng bên trong nó.
+    *   **Hậu quả:** Context được tạo ở `@BeforeClass` hoàn toàn không được sử dụng, gây lãng phí tài nguyên và tạo "ảo giác" rằng test đã được cấu hình chung (ví dụ: base URL, header).
+*   **Bad Practice - Static Access via Null Instance:**
+    *   Khai báo `private LoginService authen;` (mặc định là null).
+    *   Gọi `authen.login(...)`. Vì `login` là `static`, Java cho phép gọi qua biến null mà không lỗi `NullPointerException`.
+    *   **Đánh giá:** Đây là bad practice, gây hiểu nhầm code là hướng đối tượng (Instance method) nhưng thực chất là thủ tục (Static method).
 
-### C. Chất lượng Code (Code Quality) & Clean Code
-*   **Trùng lặp code (Duplication):** Logic khởi tạo `ObjectMapper` và parse JSON (`mapper.readTree(response.text())`) bị lặp lại trong hầu hết các test case. Nên chuyển logic này vào method chung trong `BaseTest` hoặc `JsonUtils`.
-*   **Hardcoded Strings:** Các thông báo lỗi verify (ví dụ: "Email không đúng định dạng.") đang được viết cứng (hardcode) trong test. Nếu hệ thống thay đổi ngôn ngữ hoặc message, bạn phải sửa hàng loạt file test. Nên tách ra file Constant hoặc Properties.
-*   **Sử dụng System.out.println:** Việc dùng `System.out.println` để in response là bad practice trong automation test. Nó làm rác console log và khó tích hợp với các hệ thống reporting.
+### C. Chất lượng Code & Code Smell
+*   **Dead Code:** Các field `authen` trong test class là thừa thãi.
+*   **Hardcoded Strings:** Message lỗi ("Email không đúng định dạng", v.v.) bị hardcode trong từng test case. Khi message hệ thống đổi, maintenance sẽ rất cực.
+*   **Duplication:** Logic parse JSON (`mapper.readTree...`) lặp lại trong mọi test case failure. Nên tách ra hàm tiện ích chung.
+*   **System.out.println:** Sử dụng `System.out` thay vì Logger. Không tốt cho việc trace log trên CI server.
 
-### D. Reporting & Logging
-*   **Thiếu Reporting:** Không thấy cấu hình Allure Report hay Extent Report. Khi chạy CI, sẽ rất khó biết test nào fail và tại sao (trừ khi đọc console logs raw).
-*   **Thiếu Logging:** Chưa có Log4j hoặc SLF4J. Nên thêm log để trace request/response flow chuyên nghiệp hơn.
+### D. Thiếu sót về Cấu hình & Dữ liệu
+*   **Missing Config:** Không tìm thấy file `src/main/resources/config.properties`. Project sẽ crash ngay lập tức nếu chạy.
+*   **Data Generation:** Class `TestGenerateAccount` dùng lẫn lộn `Faker` và `Math.random`. Việc tự viết logic random thủ công (ví dụ: `(int)(Math.random() * 9000)`) dễ gây trùng lặp dữ liệu và khó debug hơn thư viện chuyên dụng.
 
-### E. Test Data
-*   **Không nhất quán:** Class `TestGenerateAccount` sử dụng lẫn lộn giữa thư viện `Faker` và việc tự random bằng `Math.random`. Nên chuyển hết sang dùng `Faker` để dữ liệu phong phú và code sạch hơn.
+## 4. Đề xuất Cải tiến (Action Plan)
 
-## 4. Đề xuất cải thiện (Action Plan)
-1.  **Refactor Context Management:**
-    *   Chuyển `LoginService` (và các service khác) sang dạng Instance thay vì Static.
-    *   Truyền `APIRequestContext` vào Constructor của Service.
-    *   Khởi tạo Context duy nhất tại `@BeforeClass` (hoặc `@BeforeMethod`) trong Test và truyền nó cho Service.
-2.  **Bổ sung Resources:** Tạo folder `src/main/resources` và file `config.properties`.
-3.  **Clean Code Test:**
-    *   Viết method helper `verifyErrorMessage(APIResponse response, String expectedMessage)` để tái sử dụng logic assert.
-    *   Xóa các biến thừa.
-4.  **Tích hợp Reporting:** Thêm Allure Listener vào `testng.xml` (hoặc cấu hình pom) để xuất báo cáo HTML đẹp.
-5.  **Logging:** Thay `System.out` bằng Logger (SLF4J).
+### Bước 1: Refactor Core API & Service (Ưu tiên cao)
+*   Sửa `APIClientFactory`: Đảm bảo `getContext()` luôn trả về context hiện tại từ ThreadLocal.
+*   Sửa Service (`LoginService`):
+    *   Bỏ `static`.
+    *   Truyền `APIRequestContext` vào Constructor.
+    *   Sử dụng context được truyền vào thay vì tự tạo mới.
+
+**Ví dụ Refactor Service:**
+```java
+public class LoginService {
+    private APIRequestContext context;
+
+    public LoginService(APIRequestContext context) {
+        this.context = context;
+    }
+
+    public APIResponse login(LoginRequest data) {
+        // Reuse context, không tạo mới
+        return context.post(ConfigLoad.getInstance().getEPLogin(),
+               RequestOptions.create().setData(data));
+    }
+}
+```
+
+### Bước 2: Refactor Test Class
+*   Khởi tạo Context và Service tại `@BeforeClass`.
+*   Đóng Context tại `@AfterClass`.
+
+**Ví dụ Refactor Test:**
+```java
+public class LoginTest {
+    private APIRequestContext context;
+    private LoginService loginService;
+
+    @BeforeClass
+    public void setup() {
+        APIClientFactory.initContext(); // Lưu vào ThreadLocal
+        context = APIClientFactory.getContext();
+        loginService = new LoginService(context);
+    }
+
+    @AfterClass
+    public void tearDown() {
+        APIClientFactory.close();
+    }
+}
+```
+
+### Bước 3: Clean Code & Utilities
+*   Tạo file `config.properties`.
+*   Tạo class `AssertionUtils` hoặc `ResponseUtils` để đóng gói logic verify message lỗi.
+*   Thay `System.out.println` bằng thư viện logging (SLF4J/Log4j).
