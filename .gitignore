@@ -38,6 +38,4 @@ build/
 ### Mac OS ###
 .DS_Store
 
-src/main/java/api/APIClientFactory.java
-src/test/java/base
 src/main/resources/config.properties

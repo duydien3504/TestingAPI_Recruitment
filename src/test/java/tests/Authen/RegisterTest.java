@@ -122,4 +122,42 @@ public class RegisterTest {
             Assert.fail("Không parse được JSON response", e);
         }
     }
+
+    @Test
+    public void tc_RegisterFailWithEmptyEmail() {
+        RegisterRequest data = new RegisterRequest("", TestGenerateAccount.password(), TestGenerateAccount.fullName());
+
+        APIResponse response = authen.register(data);
+        Assert.assertEquals(response.status(), 400);
+
+        System.out.println(response.status() + "\n" + response.text());
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(response.text());
+
+            Assert.assertEquals(json.get("error").get("message").asText(), "Email là bắt buộc.");
+        } catch (Exception e) {
+            Assert.fail("Không parse được JSON response", e);
+        }
+    }
+
+    @Test
+    public void tc_RegisterFailWithEmptyPassword() {
+        RegisterRequest data = new RegisterRequest(TestGenerateAccount.email(),"", TestGenerateAccount.fullName());
+
+        APIResponse response = authen.register(data);
+        Assert.assertEquals(response.status(), 400);
+
+        System.out.println(response.status() + "\n" + response.text());
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(response.text());
+
+            Assert.assertEquals(json.get("error").get("message").asText(), "Mật khẩu là bắt buộc.");
+        } catch (Exception e) {
+            Assert.fail("Không parse được JSON response", e);
+        }
+    }
 }

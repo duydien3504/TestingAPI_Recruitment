@@ -53,4 +53,12 @@ public class ConfigLoad {
     public String getEPRegister() {
         return getProperty("epRegister");
     }
+
+    public String getEPForgotPW() {
+        return getProperty("epForgotPW");
+    }
+
+    public String getEPProfile() {
+        return  getProperty("epProfile");
+    }
 }
