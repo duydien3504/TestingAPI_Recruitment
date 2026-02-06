@@ -1,4 +1,4 @@
-package models.Profile;
+package models.Job;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,9 +11,13 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class UpdateProfileRequest {
-    String fullName;
-    String phone;
-    String address;
-    String bio;
+public class JobPostRequest {
+    String title;
+    String description;
+    String requirements;
+    int category_id;
+    int location_id;
+    int level_id;
+    int salary_min;
+    int salary_max;
 }

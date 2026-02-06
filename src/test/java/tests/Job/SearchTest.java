@@ -1,4 +1,4 @@
-package tests.Profile;
+package tests.Job;
 
 import api.APIClientFactory;
 import api.ConfigLoad;
@@ -6,14 +6,17 @@ import base.BaseTest;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.APIResponse;
 import models.Authen.LoginRequest;
+import models.Job.SearchRequest;
 import org.testng.Assert;
-import org.testng.annotations.*;
-import service.Profile.ProfileService;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import service.JobService.SearchService;
 
-public class Profile extends BaseTest{
-    ConfigLoad config = ConfigLoad.getInstance();
+public class SearchTest extends BaseTest {
     private APIRequestContext context;
-    private ProfileService prf;
+    private SearchService ss;
+    ConfigLoad config = ConfigLoad.getInstance();
 
     @BeforeClass
     public void setup() {
@@ -21,7 +24,7 @@ public class Profile extends BaseTest{
         String token = loginAndGetToken(data);
         APIClientFactory.initContextwithToken(token);
         context = APIClientFactory.getContext();
-        prf = new ProfileService(context);
+        ss = new SearchService(context);
     }
 
     @AfterClass
@@ -32,10 +35,11 @@ public class Profile extends BaseTest{
     }
 
     @Test
-    public void tc_GETProfile() {
-        APIResponse response = prf.getProfile();
+    public void tc_SearchJobSuccess() {
+        SearchRequest data = new SearchRequest();
+        APIResponse response = ss.searchAllJob(data);
+        System.out.println(response.text());
         Assert.assertEquals(response.status(), 200);
-        System.out.println(response.status() + "\n" + response.text());
-        verifySuccessMessage(response, "Lấy thông tin thành công.");
+        verifySuccessMessage(response, "Lấy danh sách việc làm thành công.");
     }
 }

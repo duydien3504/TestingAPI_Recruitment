@@ -22,7 +22,6 @@ public class ForgotPWTest extends BaseTest {
     private APIRequestContext requestContext;
     ConfigLoad config = ConfigLoad.getInstance();
     private ForgotPWService authen;
-    ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public void setup() {

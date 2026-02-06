@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.APIResponse;
 import data.TestGenerateAccount;
+import models.Authen.LoginRequest;
 import models.Authen.LoginResponse;
 import models.Profile.UpdateProfileRequest;
 import models.Profile.UpdateProfileResponse;
@@ -23,11 +24,11 @@ public class UpdateProfile extends BaseTest {
     ConfigLoad config = ConfigLoad.getInstance();
     private APIRequestContext context;
     private ProfileService pfs;
-    ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public void setup() {
-        String token = loginAndGetToken();
+        LoginRequest data = new LoginRequest(config.getEmail(), config.getPassword());
+        String token = loginAndGetToken(data);
         APIClientFactory.initContextwithToken(token);
         context = APIClientFactory.getContext();
         pfs = new ProfileService(context);
