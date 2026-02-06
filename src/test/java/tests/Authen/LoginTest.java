@@ -21,7 +21,6 @@ public class LoginTest extends BaseTest {
     ConfigLoad config = ConfigLoad.getInstance();
     private APIRequestContext requestContext;
     private LoginService authen;
-    ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public void setup() {

@@ -5,6 +5,7 @@
 - Đăng nhập (Login)
 - Quên mật khẩu (Forgot password)
 - Lấy thông tin User (Get Profile)
+- Cập nhật Profile (PUT Profile)
 - Kỹ thuật thể hiện: Quản lý Authen Token, xử lý API Chaining (lấy token từ login dùng cho các request sau).
 
 2. Nhóm Module Core Business - Jobs & Search (Dữ liệu & Tìm kiếm)

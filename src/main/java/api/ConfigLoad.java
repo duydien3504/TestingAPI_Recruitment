@@ -61,4 +61,8 @@ public class ConfigLoad {
     public String getEPProfile() {
         return  getProperty("epProfile");
     }
+
+    public String getEPJob() {
+        return getProperty("epJobPost");
+    }
 }

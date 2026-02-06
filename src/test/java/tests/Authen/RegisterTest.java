@@ -22,7 +22,6 @@ public class RegisterTest extends BaseTest {
     ConfigLoad config = ConfigLoad.getInstance();
     private APIRequestContext context;
     private RegisterService authen;
-    ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public void setup() {

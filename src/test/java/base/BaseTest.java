@@ -22,11 +22,10 @@ public class BaseTest {
     ObjectMapper mapper = new ObjectMapper();
 
 
-    public String loginAndGetToken() {
+    public String loginAndGetToken(LoginRequest data) {
         try {
             authen = new LoginService(context);
 
-            LoginRequest data = new LoginRequest(config.getEmail(), config.getPassword());
             APIResponse response = authen.login(data);
 
             if(response.status() != 200) {
