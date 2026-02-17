@@ -65,4 +65,12 @@ public class ConfigLoad {
     public String getEPJob() {
         return getProperty("epJobPost");
     }
+
+    public String getKwSearch() {
+        return getProperty("kw1");
+    }
+
+    public String getPartialKw() {
+        return getProperty("partialkw2");
+    }
 }
