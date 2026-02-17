@@ -27,8 +27,16 @@ public class TestGenerateJob {
         return faker.number().numberBetween(1,63);
     }
 
+    public static int locationId_Ivl() {
+        return faker.number().numberBetween(100,200);
+    }
+
     public static int level_id() {
         return faker.number().numberBetween(1,9);
+    }
+
+    public static int levelId_Ivl() {
+        return faker.number().numberBetween(20,30);
     }
 
     public static int salary_min() {
