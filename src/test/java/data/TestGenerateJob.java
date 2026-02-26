@@ -50,4 +50,8 @@ public class TestGenerateJob {
     public static String idJob() {
         return String.valueOf(faker.number().numberBetween(120000, 120100));
     }
+
+    public static String idJobIvl() {
+        return String.valueOf(faker.number().numberBetween(12210000, 1305434100));
+    }
 }

@@ -16,6 +16,8 @@ import java.awt.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class SearchRequest {
+    Integer page;
+    Integer limit;
     String keyword;
     Integer category_id;
     Integer location_id;

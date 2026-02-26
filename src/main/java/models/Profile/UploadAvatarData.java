@@ -1,6 +1,5 @@
 package models.Profile;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,11 +10,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
-public class UpdateProfileRequest {
-    String fullName;
-    String phone;
-    String address;
-    String bio;
+public class UploadAvatarData {
+    String avatarUrl;
 }

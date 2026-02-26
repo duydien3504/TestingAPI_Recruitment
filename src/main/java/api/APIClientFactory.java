@@ -26,8 +26,8 @@ public class APIClientFactory {
         ConfigLoad config = ConfigLoad.getInstance();
         Map<String, String> headers = new HashMap<>();
 
-        headers.put("Content-Type", "application/json");
-        headers.put("Accept", "application/json");
+        //headers.put("Content-Type", "application/json");
+        //headers.put("Accept", "application/json");
 
         if(token != null && !token.isEmpty()) {
             headers.put("Authorization", "Bearer " + token);

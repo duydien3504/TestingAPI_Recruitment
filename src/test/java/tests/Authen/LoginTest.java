@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.APIResponse;
 import data.TestGenerateAccount;
+import lombok.extern.java.Log;
 import models.Authen.LoginRequest;
 import models.Authen.LoginResponse;
 import org.testng.Assert;
@@ -105,5 +106,15 @@ public class LoginTest extends BaseTest {
         Assert.assertEquals(response.status(), 400);
 
         verifyErrorMessage(response, "Mật khẩu là bắt buộc.");
+    }
+
+    @Test
+    public void tc_LoginFailWithEmailNotExist() {
+        LoginRequest data = new LoginRequest(TestGenerateAccount.email(), config.getPassword());
+
+        APIResponse response = authen.login(data);
+        Assert.assertEquals(response.status(), 401);
+
+        verifyErrorMessage(response, "Email hoặc mật khẩu không chính xác.");
     }
 }
