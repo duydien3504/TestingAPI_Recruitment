@@ -85,4 +85,12 @@ public class ConfigLoad {
     public String getEPUploadAvt() {
         return getProperty("epUploadAvatar");
     }
+
+    public String getEPRole() {
+        return getProperty("epRole");
+    }
+
+    public String getEPUser() {
+        return getProperty("epUser");
+    }
 }
