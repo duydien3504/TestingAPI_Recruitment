@@ -120,4 +120,16 @@ public class RegisterTest extends BaseTest {
 
         verifyErrorMessage(response, "Mật khẩu là bắt buộc.");
     }
+
+    @Test
+    public void tc_RegisterFailWithEmailExist() {
+        RegisterRequest data = new RegisterRequest(config.getEmail(), TestGenerateAccount.password(), TestGenerateAccount.fullName());
+
+        APIResponse response = authen.register(data);
+        Assert.assertEquals(response.status(), 409);
+
+        verifyErrorMessage(response, "Email đã tồn tại trong hệ thống.");
+    }
+
+
 }

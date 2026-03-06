@@ -43,11 +43,11 @@ public class ConfigLoad {
     }
 
     public String getEmail() {
-        return getProperty("email");
+        return getProperty("adminEmail");
     }
 
     public String getPassword() {
-        return getProperty("password");
+        return getProperty("adminPassword");
     }
 
     public String getEPRegister() {
@@ -72,5 +72,25 @@ public class ConfigLoad {
 
     public String getPartialKw() {
         return getProperty("partialkw2");
+    }
+
+    public String getCandidateEmail() {
+        return getProperty("candidateEmail");
+    }
+
+    public String getCandidatePassword() {
+        return getProperty("candidatePassword");
+    }
+
+    public String getEPUploadAvt() {
+        return getProperty("epUploadAvatar");
+    }
+
+    public String getEPRole() {
+        return getProperty("epRole");
+    }
+
+    public String getEPUser() {
+        return getProperty("epUser");
     }
 }
